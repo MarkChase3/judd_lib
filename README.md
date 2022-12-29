@@ -10,6 +10,7 @@ Now, we have just the judd_core.h being built. I am updating it's tutorial on an
 
 After that, the following are planned:
 
+Module Name | Explanation
 ----------------
 judd_draw | Drawing operations on a opengl context
 judd_audio | To load and play audio
