@@ -7,7 +7,7 @@ That module should be the core of everything, with interfaces to work with other
     In all the code we will compile as the following:
 
       * Linux: gcc -o judd_core judd_core.c -lX11 -lGL -lGLX
-      * Windows: gcc -o judd_core.exe judd_core.c -lgdi32 -lGL -lwgl
+      * Windows: gcc -o judd_core.exe judd_core.c -lgdi32
       * Emscripten: emcc -o judd_core.html judd_core.c 
 
 
@@ -56,11 +56,17 @@ And a more specifc thing (made for doing a shortuct in the getters and setters):
         JUDD_DISPLAY_EVENT_FULL
     }
 
+Let's also implement an event type, for window events:
+
+    typedef void(*judd_event_t)(judd_display_t *display);
+
 Let's start the functions declarations:
 
     judd_display_t *judd_create_window(int w, int h, char *name); /* create a window and put platform dependent stuff on that (with endifs of course) */
     void judd_change_display_property(judd_display_t *display, int property, void *value); /* Set a display property  (like name, position on screen, width, or even events */
     void *judd_get_display_property(judd_display_t *display, char *name);
+    judd_event_t judd_get_display_event(judd_display_t *display, int property);
+    void judd_set_display_event(judd_display_t *display, int property, judd_event_t event);
     void judd_update_display(judd_display_t *display); /* Update the display with platform dependent stuff */
     void judd_close_display(judd_display_t *display) /* Close the display and the platform dependent stuff */
 
@@ -143,9 +149,30 @@ Now, the windows code:
     RegisterClassA(&wc); // register the window class
     display->window = CreateWindowExA(0, name, name, WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, w, h, NULL, NULL, GetModuleHandle(NULL), NULL); // create the real window
 
-And the emscrirpten:
+And the emscripten:
 
     display->context = emscripten_webgl_create_context("canvas", 0); // creates the context
     emscripten_webgl_make_context_current(display->context); // makes the context current;
 
+Now let's do the setters:
+
+     void judd_set_display_property(judd_display_t *display, int property, long long int value){
+        if(property == JUDD_DISPLAY_W) display->w = value;
+        if(property == JUDD_DISPLAY_H) display->h = value;
+        if(property == JUDD_DISPLAY_X) display->x = value;
+        if(property == JUDD_DISPLAY_Y) display->y = value;
+        if(property == JUDD_DISPLAY_RESIZED) display->resized = value;
+        if(property == JUDD_DISPLAY_CLOSED) display->closed = value;
+        if(property == JUDD_DISPLAY_MINIMIZED) display->minimized = value;
+        if(property == JUDD_DISPLAY_FULL) display->full = value;
+    }
+    void judd_set_display_event(judd_display_t *display, int property, judd_event_t event){
+        if(property == JUDD_DISPLAY_EVENT_RESIZE) display->event_resize = event;
+        if(property == JUDD_DISPLAY_EVENT_CLOSE) display->event_close = event;
+        if(property == JUDD_DISPLAY_EVENT_MINIMIZE) display->event_minimize = event;
+        if(property == JUDD_DISPLAY_EVENT_MAXIMIZE) display->event_maxmize = event;
+    }
+    
+
+I will let the getters implementation for the reader as an exercise (And because I don't want to fill this tutorial with the same lines of code). If you have any doubt, look at the finished code, it probably is on the same folder as this file.
 
