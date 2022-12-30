@@ -44,29 +44,56 @@ And a more specifc thing (made for doing a shortuct in the getters and setters):
         JUDD_DISPLAY_H,
         JUDD_DISPLAY_X,
         JUDD_DISPLAY_Y,
-        JUDD_DISPLAY_RESIZED,
         JUDD_DISPLAY_CLOSED,
-        JUDD_DISPLAY_MINIMIZED,
-        JUDD_DISPLAY_MAXIMIZED,
         JUDD_DISPLAY_FULL,
-        JUDD_DISPLAY_EVENT_RESIZE,
-        JUDD_DISPLAY_EVENT_CLOSED,
-        JUDD_DISPLAY_EVENT_MINIMIZED,
-        JUDD_DISPLAY_EVENT_MAXIMIZED,
-        JUDD_DISPLAY_EVENT_FULL
     }
 
-Let's also implement an event type, for window events:
 
-    typedef void(*judd_event_t)(judd_display_t *display);
+
+And some keyboard enums:
+
+    #ifdef __linux__
+    enum {
+        JUDD_KEY_A = XK_A, JUDD_KEY_B = XK_B, JUDD_KEY_C = XK_C, JUDD_KEY_D = XK_D,
+        JUDD_KEY_E = XK_E, JUDD_KEY_F = XK_F, JUDD_KEY_G = XK_G, JUDD_KEY_H = XK_H,
+        JUDD_KEY_I = XK_I, JUDD_KEY_J = XK_J, JUDD_KEY_K = XK_K, JUDD_KEY_L = XK_L,
+        JUDD_KEY_M = XK_M, JUDD_KEY_N = XK_N, JUDD_KEY_O = XK_O, JUDD_KEY_P = XK_P,
+        JUDD_KEY_Q = XK_Q, JUDD_KEY_R = XK_R, JUDD_KEY_S = XK_S, JUDD_KEY_T = XK_T,
+        JUDD_KEY_U = XK_U, JUDD_KEY_V = XK_V, JUDD_KEY_W = XK_W, JUDD_KEY_X = XK_X,
+        JUDD_KEY_Y = XK_Y, JUDD_KEY_Z = XK_Z,
+        JUDD_KEY_0 = XK_0, JUDD_KEY_1 = XK_0, JUDD_KEY_2 = XK_0, JUDD_KEY_3 = XK_0,
+        JUDD_KEY_4 = XK_0, JUDD_KEY_5 = XK_0, JUDD_KEY_6 = XK_0, JUDD_KEY_7 = XK_0,
+        JUDD_KEY_8 = XK_0, JUDD_KEY_9 = XK_9,
+        JUDD_KEY_SPACE = XK_space, JUDD_KEY_ENTER = XK_Return, JUDD_KEY_SHIFT = XK_Shift_L, 
+        JUDD_KEY_CNTRL = XK_Control_L, JUDD_KEY_BAKCSPACE =    XK_BackSpace,
+    };
+    #endif
+    #ifdef _WIN32
+    enum {
+        JUDD_KEY_A = 'a', JUDD_KEY_B = 'b', JUDD_KEY_C = 'c', JUDD_KEY_D = 'd',
+        JUDD_KEY_E = 'e', JUDD_KEY_F = 'f', JUDD_KEY_G = 'g', JUDD_KEY_H = 'h',
+        JUDD_KEY_I = 'i', JUDD_KEY_J = 'j', JUDD_KEY_K = 'k', JUDD_KEY_L = 'l',
+        JUDD_KEY_M = 'm', JUDD_KEY_N = 'n', JUDD_KEY_O = 'o', JUDD_KEY_P = 'p',
+        JUDD_KEY_Q = 'q', JUDD_KEY_R = 'r', JUDD_KEY_S = 's', JUDD_KEY_T = 't',
+        JUDD_KEY_U = 'u', JUDD_KEY_V = 'v', JUDD_KEY_W = 'w', JUDD_KEY_X = 'x',
+        JUDD_KEY_Y = 'y', JUDD_KEY_Z = 'z',
+        JUDD_KEY_0 = VK_0, JUDD_KEY_1 = VK_1, JUDD_KEY_2 = VK_2, JUDD_KEY_3 = VK_3,
+        JUDD_KEY_4 = VK_4, JUDD_KEY_5 = VK_5, JUDD_KEY_6 = VK_6, JUDD_KEY_7 = XK_7,
+        JUDD_KEY_8 = VK_8, JUDD_KEY_9 = VK_9,
+    };
+    #endif
+    #ifdef __EMSCRIPTEN__
+    /* TODO */
+    #endif
+    enum {JUDD_KEY_UP, JUDD_KEY_RELEASED, JUDD_KEY_PRESSED, JUDD_KEY_DOWN}; 
+
 
 Let's start the functions declarations:
 
     judd_display_t *judd_create_window(int w, int h, char *name); /* create a window and put platform dependent stuff on that (with endifs of course) */
-    void judd_change_display_property(judd_display_t *display, int property, void *value); /* Set a display property  (like name, position on screen, width, or even events */
-    void *judd_get_display_property(judd_display_t *display, char *name);
-    judd_event_t judd_get_display_event(judd_display_t *display, int property);
-    void judd_set_display_event(judd_display_t *display, int property, judd_event_t event);
+    void judd_set_display_property(judd_display_t *display, int property, void *value); /* Set a display property  (like name, position on screen, width, etc */
+    void *judd_get_display_property(judd_display_t *display, char *name); /* Gets a display property */
+    char judd_key_check(judd_display_t *display, char key); /* Check the state of a key (Shorthand for getting key prop
     void judd_update_display(judd_display_t *display); /* Update the display with platform dependent stuff */
     void judd_close_display(judd_display_t *display) /* Close the display and the platform dependent stuff */
 
@@ -76,12 +103,20 @@ Now let's implement somethings.
 
 ## Implementation
 
-Let's start implementing the first and only type: `judd_display_t`:
+Let's start implementing the first and only structure: `judd_display_t`:
 
     typedef struct JUDD_DISPLAY_STRUCT {
         int w;
         int h;
+        char keys[256];
         char *name;
+        char closed;
+        char full;
+        judd_event_t event_resize;
+        judd_event_t event_close;
+        judd_event_t event_full;
+        judd_event_t event_maxmize;
+        judd_event_t event_minimize;
         #ifdef __linux__
         Window window;
         Display display;
@@ -121,16 +156,21 @@ But first, let's do a multi-platform work:
     display->h = display->h;
     display->x = display->x;
     display->y = display->y;
+    display->resized = 0;
+    display->full = 0;
+    display->minimized = 0;
+    display->maximized = 0;
+    display->closed = 0;
     strcpy(display->name, name);
-    // The ifdefs come here
+    /* The ifdefs come here */
     }
 
 Now, let's implement the linux part:
 
-    display->display = XOpenDisplay(NULL); // Opens a display
-    display->screen = XDefaultScreen(display->display); // Get's the default screen
-    display->window = XCreateSimpleWindow(display->display, RootWindow(display->display, display->screen), 10, 10>    XSelectInput(display->display, display->window, ExposureMask | KeyPressMask); // Select the window types
-    XMapWindow(display->display, display->window); // Join the display and the window
+    display->display = XOpenDisplay(NULL); /* Opens a display */
+    display->screen = XDefaultScreen(display->display); /* Get's the default screen */
+    display->window = XCreateSimpleWindow(display->display, RootWindow(display->display, display->screen), 10, 10>    XSelectInput(display->display, display->window, ExposureMask | KeyPressMask | KeyRelease); /* Select the window types*/
+    XMapWindow(display->display, display->window); /* Join the display and the window */
 
 Now, the windows code:
 
@@ -145,14 +185,14 @@ Now, the windows code:
         .hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1),
         .lpszMenuName = NULL,
         .lpszClassName = name,
-    }; // Creates a proper win32 window class
-    RegisterClassA(&wc); // register the window class
-    display->window = CreateWindowExA(0, name, name, WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, w, h, NULL, NULL, GetModuleHandle(NULL), NULL); // create the real window
+    }; /* Creates a proper win32 window class */
+    RegisterClassA(&wc); /* register the window class */
+    display->window = CreateWindowExA(0, name, name, WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, w, h, NULL, NULL, GetModuleHandle(NULL), NULL); /* create the real window */
 
 And the emscripten:
 
-    display->context = emscripten_webgl_create_context("canvas", 0); // creates the context
-    emscripten_webgl_make_context_current(display->context); // makes the context current;
+    display->context = emscripten_webgl_create_context("canvas", 0); /* creates the webgl context */
+    emscripten_webgl_make_context_current(display->context); /* makes the context current */
 
 Now let's do the setters:
 
@@ -161,10 +201,45 @@ Now let's do the setters:
         if(property == JUDD_DISPLAY_H) display->h = value;
         if(property == JUDD_DISPLAY_X) display->x = value;
         if(property == JUDD_DISPLAY_Y) display->y = value;
-        if(property == JUDD_DISPLAY_RESIZED) display->resized = value;
-        if(property == JUDD_DISPLAY_CLOSED) display->closed = value;
-        if(property == JUDD_DISPLAY_MINIMIZED) display->minimized = value;
-        if(property == JUDD_DISPLAY_FULL) display->full = value;
+        if(property == JUDD_DISPLAY_FULL){
+            display->full = value;
+        #ifdef _WIN32
+        /* I confess I don't know how this work, but it puts the window on fullscreen */
+        if (GetWindowLongPtr(display->window, GWL_STYLE) & WS_POPUP)
+        {
+            SetWindowLongPtr(display->window, GWL_STYLE, WS_VISIBLE | WS_OVERLAPPEDWINDOW);
+            SetWindowPos(display->window, NULL, 0, 0, 600, 400, SWP_FRAMECHANGED);
+        }
+        else
+        {
+            int w = GetSystemMetrics(SM_CXSCREEN);
+            int h = GetSystemMetrics(SM_CYSCREEN);
+            SetWindowLongPtr(display->window, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+            SetWindowPos(display->window, HWND_TOP, 0, 0, w, h, SWP_FRAMECHANGED);
+        }
+        #endif
+        #ifdef __linux__
+        printf("%d\n", value);
+        /* I also don't know how this works */
+        Atom wm_state = XInternAtom (display->display, "_NET_WM_STATE", 1);
+        Atom wm_fullscreen = XInternAtom (display->display, "_NET_WM_STATE_FULLSCREEN", 1);
+        XEvent xev;
+        memset(&xev, 0, sizeof(xev));
+        xev.type = ClientMessage;
+        xev.xclient.window = display->window;
+        xev.xclient.message_type = wm_state;
+        xev.xclient.format = 32;
+        xev.xclient.data.l[1] = wm_fullscreen;
+        xev.xclient.data.l[2] = 0;
+        if(value){
+            xev.xclient.data.l[0] = 1;
+            XSendEvent(display->display, DefaultRootWindow(display->display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+        } else {
+            xev.xclient.data.l[0] = 0;
+            XSendEvent(display->display, DefaultRootWindow(display->display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+        }
+        #endif
+        }
     }
     void judd_set_display_event(judd_display_t *display, int property, judd_event_t event){
         if(property == JUDD_DISPLAY_EVENT_RESIZE) display->event_resize = event;
@@ -174,5 +249,63 @@ Now let's do the setters:
     }
     
 
+
+You can see we implemented the fullscreen on the own set property function.
+
 I will let the getters implementation for the reader as an exercise (And because I don't want to fill this tutorial with the same lines of code). If you have any doubt, look at the finished code, it probably is on the same folder as this file.
 
+Now let's implement the `judd_update_display`
+
+    void judd_update_display(judd_display_t *display){
+       int i;
+       for(i = 0; i < 256; i++){
+           if(display->keys[i] == JUDD_KEY_RELEASED) display->JUDD_KEY_UP
+           if(display->keys[i] == JUDD_KEY_PRESSED) display->JUDD_KEY_DOWN
+        }
+        #ifdef __linux__
+        
+        #endif
+        #ifdef _WIN32
+        
+        #endif
+        #ifdef __EMSCRIPTEN__
+        
+        #endif
+    }
+
+Let's do the linux part:
+
+    while (XPending(display->display)) { /* Keep the display openned and say if there's some event */
+        XEvent event;
+        char k;
+        XNextEvent(display->display, &event); /* Get next event */
+        switch (event.type) {
+            case KeyPress:
+                k = XLookupKeysym(&event.xkey, 0); // Get XK_{key_pressed} */
+                if(k - XK_a < 26) k = XK_A + (k - XK_a); /* Translate it to the uppercase if is lower (We don't differenciate it here */
+                display->keys[k] = JUDD_KEY_PRESSED;
+            break;
+            case KeyRelease:
+                k = XLookupKeysym(&event.xkey, 0); /* Get XK_{key_pressed} */
+                if(k - XK_a < 26) k = XK_A + (k - XK_a); /* Translate it to the uppercase if is lower (We don't differenciate it here */
+                display->keys[k] = JUDD_KEY_RELEASED;
+            break;
+       }
+    }
+
+
+
+And the windows:
+
+    MSG msg;
+    while (PeekMessageA(&msg, display->window, 0, 0, PM>
+       TranslateMessage(&msg);
+       DispatchMessageA(&msg);
+       switch(msg.message){
+           case WM_KEYDOWN:
+               display->keys[msg.wParam] = JUDD_KEY_PRESSED
+           case WM_KEYUP:
+               display->keys[msg.wParam] = JUDD_KEY_RELEASED
+           break;
+       }
+    }
