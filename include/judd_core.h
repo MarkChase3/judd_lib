@@ -24,7 +24,34 @@
 #include <GLES2/gl2.h>
 #endif
 
-typedef struct JUDD_DISPLAY_STRUCT judd_display_t;
+typedef struct JUDD_DISPLAY_STRUCT {
+    char keys[256];
+    char *name;
+    char closed;
+    char full;
+    int mouse_x;
+    int mouse_y;
+    char mouse_lbutton;
+    char mouse_mbutton;
+    char mouse_rbutton;
+    #ifdef __linux__
+    Window window;
+    Display *display;
+    // Surface *surface;
+    int screen;
+    GC graphics_context;
+    GLXContext glx_context;
+    #endif
+    #ifdef _WIN32
+    HWND window;
+    HGLRC context;
+    #endif
+    #ifdef __EMSCRIPTEN__
+    int w, h;
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context;
+    #endif
+} judd_display_t;
+
 
 #ifdef __linux__
 enum {
@@ -85,33 +112,6 @@ void judd_close_display(judd_display_t *display); /* Close the display and the p
 #endif
 
 #ifdef JUDD_CORE_IMPL
-typedef struct JUDD_DISPLAY_STRUCT {
-    char keys[256];
-    char *name;
-    char closed;
-    char full;
-    int mouse_x;
-    int mouse_y;
-    char mouse_lbutton;
-    char mouse_mbutton;
-    char mouse_rbutton;
-    #ifdef __linux__
-    Window window;
-    Display *display;
-    // Surface *surface;
-    int screen;
-    GC graphics_context;
-    GLXContext glx_context;
-    #endif
-    #ifdef _WIN32
-    HWND window;
-    HGLRC context;
-    #endif
-    #ifdef __EMSCRIPTEN__
-    int w, h;
-    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context;
-    #endif
-} judd_display_t;
 #ifdef __EMSCRIPTEN__
 EM_BOOL judd_keydown_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData) {
   ((judd_display_t*)userData)->keys[keyEvent->keyCode] = JUDD_KEY_PRESSED;
