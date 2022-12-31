@@ -12,14 +12,19 @@ Well, I am working in some drafts it's been a time, and now I have some ideas an
 
 # What are the modules?
 
-Now, we have just the judd_core.h being built. I am updating it's tutorial on another branch while I make it. I think int 3 days I get it ready.
+Now, we just have the judd_core ready, but I'm working on other modules, mainly the `judd_draw`.
 
-After that, the following are planned:
+The following are planned to the final version:
 
 Module Name | Explanation
 -------|--------
+judd_core | Opengl context creation and window mangement
 judd_draw | Drawing operations on a opengl context
 judd_audio | To load and play audio
 judd_time | To manage time
 judd_ecc | Entity component system
 judd_physics | To handle physics
+
+# What platforms are supported?
+
+The focus is on window, linux and emscripten, because I don't have acces to a mac. It's expected that on the 2.0 version of judd_core, mac will be supported.
