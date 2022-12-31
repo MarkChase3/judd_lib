@@ -8,7 +8,7 @@ That module should be the core of everything, with interfaces to work with other
 
       * Linux: gcc -o judd_core judd_core.c -lX11 -lGL -lGLX
       * Windows: gcc -o judd_core.exe judd_core.c -lgdi32
-      * Emscripten: emcc -o judd_core.html judd_core.c 
+      * Emscripten: emcc -o judd_core.html judd_core.c -sASYNCIFY
 
 
 Let's include the files on each platform and as this will be a single header module, we should do a stb-like structure:
@@ -29,38 +29,29 @@ Let's include the files on each platform and as this will be a single header mod
     #undef JUDD_CORE_IMPL 
     #endif
 
+Let's start implementing the first and only structure: `judd_display_t`:
 
-Now let's do the main type:
-
-    typedef struct JUDD_DISPLAY_STRUCT judd_display_t;
-
-
-It will be better defined on the implementation part.
-
-Let's also implement an event type, for window events:
-
-    typedef void(
-    *judd_event_t)(judd_display_t *display);
-
-And a more specifc thing (made for doing a shortuct in the getters and setters):
-
-    enum {  
-        JUDD_DISPLAY_W,
-        JUDD_DISPLAY_H,
-        JUDD_DISPLAY_X,
-        JUDD_DISPLAY_Y,
-        JUDD_DISPLAY_RESIZED,
-        JUDD_DISPLAY_CLOSED,
-        JUDD_DISPLAY_MINIMIZED,
-        JUDD_DISPLAY_MAXIMIZED,
-        JUDD_DISPLAY_FULL,
-        JUDD_DISPLAY_EVENT_RESIZE,
-        JUDD_DISPLAY_EVENT_CLOSED,
-        JUDD_DISPLAY_EVENT_MINIMIZED,
-        JUDD_DISPLAY_EVENT_MAXIMIZED,
-        JUDD_DISPLAY_EVENT_FULL
+    typedef struct JUDD_DISPLAY_STRUCT {
+        char keys[256];
+        char *name;
+        char closed;
+        char full;
+        #ifdef __linux__
+        Window window;
+        Display display;
+        Screen screen;
+        GC graphics_context;
+        GLXContext glx_context;
+        #endif
+        #ifdef _WIN32
+        HWND window;
+        #endif
+        #ifdef __EMSCRIPTEN__
+        WebGlContext ctx;
+        int w;
+        int h;
+        #endif
     }
-
 
 
 And some keyboard enums:
@@ -95,16 +86,44 @@ And some keyboard enums:
         JUDD_KEY_8 = VK_8, JUDD_KEY_9 = VK_9,
     };
     #endif
+    #ifdef __EMSCRIPTEN__
+    enum {
+        JUDD_KEY_A = 'A', JUDD_KEY_B = 'B', JUDD_KEY_C = 'C', JUDD_KEY_D = 'D',
+        JUDD_KEY_E = 'E', JUDD_KEY_F = 'F', JUDD_KEY_G = 'G', JUDD_KEY_H = 'H',
+        JUDD_KEY_I = 'I', JUDD_KEY_J = 'J', JUDD_KEY_K = 'K', JUDD_KEY_L = 'L',
+        JUDD_KEY_M = 'M', JUDD_KEY_N = 'N', JUDD_KEY_O = 'O', JUDD_KEY_P = 'P',
+        JUDD_KEY_Q = 'Q', JUDD_KEY_R = 'R', JUDD_KEY_S = 'S', JUDD_KEY_T = 'T',
+        JUDD_KEY_U = 'U', JUDD_KEY_V = 'V', JUDD_KEY_W = 'W', JUDD_KEY_X = 'X',
+        JUDD_KEY_Y = 'Y', JUDD_KEY_Z = 'Z',
+        JUDD_KEY_0 = '0', JUDD_KEY_1 = '1', JUDD_KEY_2 = '2', JUDD_KEY_3 = '3',
+        JUDD_KEY_4 = '4', JUDD_KEY_5 = '5', JUDD_KEY_6 = '6', JUDD_KEY_7 = '7',
+        JUDD_KEY_8 = '8', JUDD_KEY_9 = '9',
+        JUDD_KEY_SPACE = ' ', JUDD_KEY_ENTER = 13, JUDD_KEY_SHIFT = 16,
+        JUDD_KEY_CNTRL = 17, JUDD_KEY_BAKCSPACE = 8,
+    };
+    #endif
     enum {JUDD_KEY_UP, JUDD_KEY_RELEASED, JUDD_KEY_PRESSED, JUDD_KEY_DOWN}; 
 
 
-Let's start the functions declarations:
+And a more specifc thing (made for doing a shortuct in the getters and setters):
 
+    enum {  
+        JUDD_DISPLAY_W,
+        JUDD_DISPLAY_H,
+        JUDD_DISPLAY_RESIZED,
+        JUDD_DISPLAY_CLOSED,
+        JUDD_DISPLAY_MINIMIZED,
+        JUDD_DISPLAY_MAXIMIZED,
+        JUDD_DISPLAY_FULL,
+        JUDD_DISPLAY_EVENT_RESIZE,
+        JUDD_DISPLAY_EVENT_CLOSED,
+        JUDD_DISPLAY_EVENT_MINIMIZED,
+        JUDD_DISPLAY_EVENT_MAXIMIZED,
+        JUDD_DISPLAY_EVENT_FULL
+    }
     judd_display_t *judd_create_window(int w, int h, char *name); /* create a window and put platform dependent stuff on that (with endifs of course) */
-    void judd_change_display_property(judd_display_t *display, int property, void *value); /* Set a display property  (like name, position on screen, width, etc */
-    void *judd_get_display_property(judd_display_t *display, char *name); /* Gets a display property */
-    judd_event_t judd_get_display_event(judd_display_t *display, int property); /* gets a display event */
-    void judd_set_display_event(judd_display_t *display, int property, judd_event_t event); /* Sets a display event */
+    void judd_set_display_name(judd_display_t *display, char *value);
+    void judd_set_display_fullscreen(judd_display_t *display, char value);
     void judd_update_display(judd_display_t *display); /* Update the display with platform dependent stuff */
     void judd_close_display(judd_display_t *display) /* Close the display and the platform dependent stuff */
 
@@ -113,6 +132,7 @@ That's it! We declared all the stuff.  I I've tried to be the simpler as possibl
 Now let's implement somethings.
 
 ## Implementation
+
 
 Let's start implementing the first and only structure: `judd_display_t`:
 
@@ -166,14 +186,8 @@ But first, let's do a multi-platform work:
 
     judd_display_t *judd_create_display(int x, int y, int w, int h, char *name){
     judd_display_t *display = malloc(sizeof(judd_display_t));
-    display->w = display->w;
-    display->h = display->h;
-    display->x = display->x;
-    display->y = display->y;
-    display->resized = 0;
     display->full = 0;
-    display->minimized = 0;
-    display->maximized = 0;
+
     display->closed = 0;
     strcpy(display->name, name);
     /* The ifdefs come here */
@@ -183,11 +197,12 @@ Now, let's implement the linux part:
 
     display->display = XOpenDisplay(NULL); /* Opens a display */
     display->screen = XDefaultScreen(display->display); /* Get's the default screen */
-    display->window = XCreateSimpleWindow(display->display, RootWindow(display->display, display->screen), 10, 10>    XSelectInput(display->display, display->window, ExposureMask | KeyPressMask | KeyRelease); /* Select the window types*/
+    display->window = XCreateSimpleWindow(display->display, RootWindow(display->display, display->screen), 10, 10> XSelectInput(display->display, display->window, ExposureMask | KeyPressMask | KeyRelease); /* Select the window types*/
     XMapWindow(display->display, display->window); /* Join the display and the window */
 
 Now, the windows code:
 
+    /* The windows code is very extensive (100 lines). If you have a smaller version or can refactorize this to be smaller, please open a pull request */
     WNDCLASS wc = {
         .style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW,
         .lpfnWndProc = DefWindowProcA,
@@ -201,35 +216,106 @@ Now, the windows code:
         .lpszClassName = name,
     }; /* Creates a proper win32 window class */
     RegisterClassA(&wc); /* register the window class */
-    display->window = CreateWindowExA(0, name, name, WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, w, h, NULL, NULL, GetModuleHandle(NULL), NULL); /* create the real window */
+    display->window = CreateWindowExA(0, name, name, WS_OVERLAPPEDWINDOW|WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, w, h, NULL, NULL, GetModuleHandle(NULL), &display->window); // create the real window
+    HDC real_dc = GetDC(display->window);
+    HGLRC WINAPI(*wglCreateContextAttribsARB)(HDC, HGLRC, const int*);
+    BOOL WINAPI(*wglChoosePixelFormatARB)(HDC, const int*,
+    const FLOAT*, UINT, int*, UINT*);
+    WNDCLASSA window_class = {
+        .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
+        .lpfnWndProc = DefWindowProcA,
+        .hInstance = GetModuleHandle(0),
+        .lpszClassName = "Dummy WGL Window Class",
+    };
 
+    RegisterClassA(&window_class);
+    HWND dummy_window = CreateWindowExA(
+        0,
+        window_class.lpszClassName,
+        "Dummy OpenGL Window",
+        0,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        0,
+        0,
+        window_class.hInstance,
+        0);
+     HDC dummy_dc = GetDC(dummy_window);
+
+    /* Makes a pixel format for win32 fix for the current platform (I think) */
+    PIXELFORMATDESCRIPTOR pfd = {
+        .nSize = sizeof(pfd),
+        .nVersion = 1,
+        .iPixelType = PFD_TYPE_RGBA,
+        .dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+        .cColorBits = 32,
+        .cAlphaBits = 8,
+        .iLayerType = PFD_MAIN_PLANE,
+        .cDepthBits = 24,
+        .cStencilBits = 8,
+    };
+
+    /* Gets a pixel format fir the dummy wgl context */
+    int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
+    SetPixelFormat(dummy_dc, pixel_format, &pfd);
+   
+   /* Creates and enable a new dummy webgl context */
+    HGLRC dummy_context = wglCreateContext(dummy_dc);
+    wglMakeCurrent(dummy_dc, dummy_context);
+    /* Loads the necessary functions for making a proper wgl context from the dummy comtext*/
+    wglCreateContextAttribsARB = wglGetProcAddress(
+        "wglCreateContextAttribsARB");
+    wglChoosePixelFormatARB = wglGetProcAddress(
+        "wglChoosePixelFormatARB");
+
+    wglMakeCurrent(dummy_dc, 0);
+    wglDeleteContext(dummy_context);
+    ReleaseDC(dummy_window, dummy_dc);
+    DestroyWindow(dummy_window);
+    int pixel_format_attribs[] = {
+        WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
+        WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,
+        WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
+        WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
+        WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
+        WGL_COLOR_BITS_ARB,         32,
+        WGL_DEPTH_BITS_ARB,         24,
+        WGL_STENCIL_BITS_ARB,       8,
+        0
+    };
+    /* Asks a proper pixel format to the dummy wgl ctx */
+    UINT num_formats;
+    wglChoosePixelFormatARB(real_dc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+    
+    /* Sets the pixel format now that we get it*/
+    DescribePixelFormat(real_dc, pixel_format, sizeof(pfd), &pfd);
+    SetPixelFormat(real_dc, pixel_format, &pfd);
+
+    /* Specify that we want to create an OpenGL 3.3 core profile context */
+    int gl33_attribs[] = {
+        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+        WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        0,
+    };
+    /* Creates a wgl context */
+    display->context = wglCreateContextAttribsARB(real_dc, 0, gl33_attribs);
+    wglMakeCurrent(real_dc, display->context);
 And the emscripten:
 
     display->context = emscripten_webgl_create_context("canvas", 0); /* creates the webgl context */
     emscripten_webgl_make_context_current(display->context); /* makes the context current */
-
-Now let's do the setters:
-
-     void judd_set_display_property(judd_display_t *display, int property, long long int value){
-        if(property == JUDD_DISPLAY_W) display->w = value;
-        if(property == JUDD_DISPLAY_H) display->h = value;
-        if(property == JUDD_DISPLAY_X) display->x = value;
-        if(property == JUDD_DISPLAY_Y) display->y = value;
-        if(property == JUDD_DISPLAY_RESIZED) display->resized = value;
-        if(property == JUDD_DISPLAY_CLOSED) display->closed = value;
-        if(property == JUDD_DISPLAY_MINIMIZED) display->minimized = value;
-        if(property == JUDD_DISPLAY_FULL) display->full = value;
-    }
-    void judd_set_display_event(judd_display_t *display, int property, judd_event_t event){
-        if(property == JUDD_DISPLAY_EVENT_RESIZE) display->event_resize = event;
-        if(property == JUDD_DISPLAY_EVENT_CLOSE) display->event_close = event;
-        if(property == JUDD_DISPLAY_EVENT_MINIMIZE) display->event_minimize = event;
-        if(property == JUDD_DISPLAY_EVENT_MAXIMIZE) display->event_maxmize = event;
-    }
-    
-
-I will let the getters implementation for the reader as an exercise (And because I don't want to fill this tutorial with the same lines of code). If you have any doubt, look at the finished code, it probably is on the same folder as this file.
-
+    emscripten_webgl_make_context_current(display->context); /* makes the context current; */
+    /* sets the callbacks */
+    emscripten_set_keydown_callback("canvas", display, 1, judd_keydown_handler);
+    emscripten_set_keyup_callback("canvas", display, 1, judd_keyup_handler);
+    emscripten_set_mousemove_callback("canvas", display, 1, judd_mouse_move_handler);
+    emscripten_set_mousedown_callback("canvas", display, 1, judd_mouse_down_handler);
+    emscripten_set_mouseup_callback("canvas", display, 1, judd_mouse_up_handler);
+    display->w = w;
+    display->h = h;
 Now let's implement the `judd_update_display`
 
     void judd_update_display(judd_display_t *display){
@@ -251,37 +337,98 @@ Now let's implement the `judd_update_display`
 
 Let's do the linux part:
 
-    while (XPending(display->display)) { // Keep the display openned and say if there's some event
+    while (XPending(display->display)) { /* Keep the display openned and say if there's some event */
         XEvent event;
         char k;
-        XNextEvent(display->display, &event); // Get next event
+        XNextEvent(display->display, &event); /* Get next event */
         switch (event.type) {
             case KeyPress:
-                k = XLookupKeysym(&event.xkey, 0); // Get XK_{key_pressed}
-                if(k - XK_a < 26) k = XK_A + (k - XK_a); // Translate it to the uppercase if is lower (We don't d>                display->keys[k] = JUDD_KEY_PRESSED;
+                k = XLookupKeysym(&event.xkey, 0); // Get XK_{key_pressed} */
+                if(k - XK_a < 26) k = XK_A + (k - XK_a); /* Translate it to the uppercase if is lower (We don't differenciate it here */
+                display->keys[k] = JUDD_KEY_PRESSED;
             break;
             case KeyRelease:
-                k = XLookupKeysym(&event.xkey, 0); // Get XK_{key_pressed}
-                if(k - XK_a < 26) k = XK_A + (k - XK_a); // Translate it to the uppercase if is lower (We don't d>
+                k = XLookupKeysym(&event.xkey, 0); /* Get XK_{key_pressed} */
+                if(k - XK_a < 26) k = XK_A + (k - XK_a); /* Translate it to the uppercase if is lower (We don't differenciate it here */
                 display->keys[k] = JUDD_KEY_RELEASED;
-           break;
+            break;
+            case ButtonPress:
+                switch(event.xbutton.button){
+                    case Button1:
+                        display->mouse_lbutton = JUDD_KEY_PRESSED;
+                    break;
+                    case Button3:
+                        display->mouse_rbutton = JUDD_KEY_PRESSED;               
+                    break;
+                    default:
+                    break;
+            }
+            break;
+            case ButtonRelease:
+                switch(event.xbutton.button){
+                    case Button1:
+                        display->mouse_lbutton = JUDD_KEY_RELEASED;
+                    break;
+                    case Button3:
+                        display->mouse_rbutton = JUDD_KEY_RELEASED;               
+                    break;
+                    default:
+                    break;
+            }
+            break;
+            case MotionNotify:
+                display->mouse_x = event.xmotion.x;
+            break;
+            case ClientMessage:
+                wmDeleteMessage = XInternAtom(display->display, "WM_DELETE_WINDOW", False);
+                if (event.xclient.data.l[0] == wmDeleteMessage)
+                    display->closed = 1;
+            break;
        }
     }
-
-
+    glXSwapBuffers(display->display, display->window);
+    
 
 
 And the windows:
 
     MSG msg;
     while (PeekMessageA(&msg, display->window, 0, 0, PM>
-       TranslateMessage(&msg);
-       DispatchMessageA(&msg);
-       switch(msg.message){
-           case WM_KEYDOWN:
-               display->keys[msg.wParam] = JUDD_KEY_PRESSED
-           case WM_KEYUP:
-               display->keys[msg.wParam] = JUDD_KEY_RELEASED
-           break;
+        TranslateMessage(&msg);
+        DispatchMessageA(&msg);
+        switch(msg.message){
+            case WM_KEYDOWN:
+                display->keys[msg.wParam] = JUDD_KEY_PRESSED
+            case WM_KEYUP:
+                display->keys[msg.wParam] = JUDD_KEY_RELEASED
+            break;
+            case WM_LBUTTONDOWN:
+                display->mouse_lbutton = JUDD_KEY_PRESSED;
+            break;
+            case WM_LBUTTONUP:
+                display->mouse_lbutton = JUDD_KEY_PRESSED;
+            break;
+            case WM_MOUSEMOVE:
+                display->mouse_x = GET_X_LPARAM(msg.lParam);
+                display->mouse_y = GET_Y_LPARAM(msg.lParam);
+            break;
        }
     }
+    display->closed = !IsWindow(display->window);
+    SwapBuffers(GetDC(display->window));
+
+See that we implemented the emscripten key dow/key up arrays and mouse variables in the create window function.
+
+
+And the last function, `judd_display_close`:
+
+    void judd_display_close(judd_display_t *display){
+        free(display->name);
+        #ifdef __linux__
+            XDestroyWindow(display->display, display->window);
+        #endif
+        #ifdef __WIN32
+            DestroyWindow(display->window);
+        #endif
+    }
+
