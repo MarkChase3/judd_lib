@@ -1,3 +1,4 @@
+
 #define JUDD_CORE_IMPL
 #ifndef JUDD_CORE_H
 #define JUDD_CORE_H
@@ -26,6 +27,16 @@
 #endif
 
 typedef struct JUDD_DISPLAY_STRUCT judd_display_t;
+typedef void(*judd_event_t)(judd_display_t *display);
+
+enum {
+    JUDD_DISPLAY_W,
+    JUDD_DISPLAY_H,
+    JUDD_DISPLAY_X,
+    JUDD_DISPLAY_Y,
+    JUDD_DISPLAY_CLOSED,
+    JUDD_DISPLAY_FULL,
+};
 
 #ifdef __linux__
 enum {
@@ -39,7 +50,7 @@ JUDD_KEY_Y = XK_Y, JUDD_KEY_Z = XK_Z,
 JUDD_KEY_0 = XK_0, JUDD_KEY_1 = XK_0, JUDD_KEY_2 = XK_0, JUDD_KEY_3 = XK_0,
 JUDD_KEY_4 = XK_0, JUDD_KEY_5 = XK_0, JUDD_KEY_6 = XK_0, JUDD_KEY_7 = XK_0,
 JUDD_KEY_8 = XK_0, JUDD_KEY_9 = XK_9,
-JUDD_KEY_SPACE = XK_space, JUDD_KEY_ENTER = XK_Return, JUDD_KEY_SHIFT = XK_Shift_L,
+JUDD_KEY_SPACE = XK_space, JUDD_KEY_ENTER = XK_Return, JUDD_KEY_SHIFT = XK_Shift_L, 
 JUDD_KEY_CNTRL = XK_Control_L, JUDD_KEY_BAKCSPACE = XK_BackSpace,
 };
 #endif
@@ -59,27 +70,9 @@ JUDD_KEY_SPACE = VK_SPACE, JUDD_KEY_ENTER = VK_RETURN, JUDD_KEY_SHIFT = VK_LSHIF
 JUDD_KEY_CNTRL = VK_LCONTROL, JUDD_KEY_BAKCSPACE = VK_BACK,
 };
 #endif
-#ifdef __EMSCRIPTEN__
-enum {
-JUDD_KEY_A = 'A', JUDD_KEY_B = 'B', JUDD_KEY_C = 'C', JUDD_KEY_D = 'D',
-JUDD_KEY_E = 'E', JUDD_KEY_F = 'F', JUDD_KEY_G = 'G', JUDD_KEY_H = 'H',
-JUDD_KEY_I = 'I', JUDD_KEY_J = 'J', JUDD_KEY_K = 'K', JUDD_KEY_L = 'L',
-JUDD_KEY_M = 'M', JUDD_KEY_N = 'N', JUDD_KEY_O = 'O', JUDD_KEY_P = 'P',
-JUDD_KEY_Q = 'Q', JUDD_KEY_R = 'R', JUDD_KEY_S = 'S', JUDD_KEY_T = 'T',
-JUDD_KEY_U = 'U', JUDD_KEY_V = 'V', JUDD_KEY_W = 'W', JUDD_KEY_X = 'X',
-JUDD_KEY_Y = 'Y', JUDD_KEY_Z = 'Z',
-JUDD_KEY_0 = '0', JUDD_KEY_1 = '1', JUDD_KEY_2 = '2', JUDD_KEY_3 = '3',
-JUDD_KEY_4 = '4', JUDD_KEY_5 = '5', JUDD_KEY_6 = '6', JUDD_KEY_7 = '7',
-JUDD_KEY_8 = '8', JUDD_KEY_9 = '9',
-JUDD_KEY_SPACE = ' ', JUDD_KEY_ENTER = 13, JUDD_KEY_SHIFT = 16,
-JUDD_KEY_CNTRL = 17, JUDD_KEY_BAKCSPACE = 8,
-};
-#endif
 enum {JUDD_KEY_UP, JUDD_KEY_RELEASED, JUDD_KEY_PRESSED, JUDD_KEY_DOWN};
 
 judd_display_t *judd_create_display(int x, int y, int w, int h, char *name); /* create a window and put platform dependent stuff on that (with endifs of course) */
-void judd_set_display_name(judd_display_t *display, char *value);
-void judd_set_display_fullscreen(judd_display_t *display, char value);
 void judd_update_display(judd_display_t *display); /* Update the display with platform dependent stuff */
 void judd_close_display(judd_display_t *display); /* Close the display and the platform dependent stuff */
 

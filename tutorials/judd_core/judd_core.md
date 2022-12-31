@@ -105,8 +105,22 @@ And some keyboard enums:
     enum {JUDD_KEY_UP, JUDD_KEY_RELEASED, JUDD_KEY_PRESSED, JUDD_KEY_DOWN}; 
 
 
-Let's start the functions declarations:
+And a more specifc thing (made for doing a shortuct in the getters and setters):
 
+    enum {  
+        JUDD_DISPLAY_W,
+        JUDD_DISPLAY_H,
+        JUDD_DISPLAY_RESIZED,
+        JUDD_DISPLAY_CLOSED,
+        JUDD_DISPLAY_MINIMIZED,
+        JUDD_DISPLAY_MAXIMIZED,
+        JUDD_DISPLAY_FULL,
+        JUDD_DISPLAY_EVENT_RESIZE,
+        JUDD_DISPLAY_EVENT_CLOSED,
+        JUDD_DISPLAY_EVENT_MINIMIZED,
+        JUDD_DISPLAY_EVENT_MAXIMIZED,
+        JUDD_DISPLAY_EVENT_FULL
+    }
     judd_display_t *judd_create_window(int w, int h, char *name); /* create a window and put platform dependent stuff on that (with endifs of course) */
     void judd_set_display_name(judd_display_t *display, char *value);
     void judd_set_display_fullscreen(judd_display_t *display, char value);
@@ -118,6 +132,39 @@ That's it! We declared all the stuff.  I I've tried to be the simpler as possibl
 Now let's implement somethings.
 
 ## Implementation
+
+
+Let's start implementing the first and only structure: `judd_display_t`:
+
+    typedef struct JUDD_DISPLAY_STRUCT {
+        int w;
+        int h;
+        char keys[256];
+        char *name;
+        char resized;
+        char closed;
+        char minimized;
+        char maximized;
+        char full;
+        judd_event_t event_resize;
+        judd_event_t event_close;
+        judd_event_t event_full;
+        judd_event_t event_maxmize;
+        judd_event_t event_minimize;
+        #ifdef __linux__
+        Window window;
+        Display display;
+        Screen screen;
+        GC graphics_context;
+        GLXContext glx_context;
+        #endif
+        #ifdef _WIN32
+        HWND window;
+        #endif
+        #ifdef __EMSCRIPTEN__
+        WebGlContext ctx;
+        #endif
+    }
 
 Let's do an `judd_create_display` function:
 
@@ -140,6 +187,7 @@ But first, let's do a multi-platform work:
     judd_display_t *judd_create_display(int x, int y, int w, int h, char *name){
     judd_display_t *display = malloc(sizeof(judd_display_t));
     display->full = 0;
+
     display->closed = 0;
     strcpy(display->name, name);
     /* The ifdefs come here */
@@ -383,3 +431,4 @@ And the last function, `judd_display_close`:
             DestroyWindow(display->window);
         #endif
     }
+
