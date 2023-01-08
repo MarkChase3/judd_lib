@@ -24,34 +24,7 @@
 #include <GLES2/gl2.h>
 #endif
 
-typedef struct JUDD_DISPLAY_STRUCT {
-    char keys[256];
-    char *name;
-    char closed;
-    char full;
-    int mouse_x;
-    int mouse_y;
-    char mouse_lbutton;
-    char mouse_mbutton;
-    char mouse_rbutton;
-    #ifdef __linux__
-    Window window;
-    Display *display;
-    // Surface *surface;
-    int screen;
-    GC graphics_context;
-    GLXContext glx_context;
-    #endif
-    #ifdef _WIN32
-    HWND window;
-    HGLRC context;
-    #endif
-    #ifdef __EMSCRIPTEN__
-    int w, h;
-    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context;
-    #endif
-} judd_display_t;
-
+typedef struct JUDD_DISPLAY_STRUCT judd_display_t;
 
 #ifdef __linux__
 enum {
@@ -103,15 +76,42 @@ JUDD_KEY_CNTRL = 17, JUDD_KEY_BAKCSPACE = 8,
 #endif
 enum {JUDD_KEY_UP, JUDD_KEY_RELEASED, JUDD_KEY_PRESSED, JUDD_KEY_DOWN};
 
-judd_display_t *judd_create_display(int x, int y, int w, int h, char *name); /* create a window and put platform dependent stuff on that (with endifs of course) */
+judd_display_t *judd_create_display(int w, int h, char *name); /* create a window and put platform dependent stuff on that (with endifs of course) */
 void judd_set_display_name(judd_display_t *display, char *value);
 void judd_set_display_fullscreen(judd_display_t *display, char value);
 void judd_update_display(judd_display_t *display); /* Update the display with platform dependent stuff */
 void judd_close_display(judd_display_t *display); /* Close the display and the platform dependent stuff */
-
+typedef struct JUDD_DISPLAY_STRUCT {
+    char keys[256];
+    char *name;
+    char closed;
+    char full;
+    int mouse_x;
+    int mouse_y;
+    char mouse_lbutton;
+    char mouse_mbutton;
+    char mouse_rbutton;
+    #ifdef __linux__
+    Window window;
+    Display *display;
+    // Surface *surface;
+    int screen;
+    GC graphics_context;
+    GLXContext glx_context;
+    #endif
+    #ifdef _WIN32
+    HWND window;
+    HGLRC context;
+    #endif
+    #ifdef __EMSCRIPTEN__
+    int w, h;
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context;
+    #endif
+} judd_display_t;
 #endif
 
 #ifdef JUDD_CORE_IMPL
+
 #ifdef __EMSCRIPTEN__
 EM_BOOL judd_keydown_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData) {
   ((judd_display_t*)userData)->keys[keyEvent->keyCode] = JUDD_KEY_PRESSED;
@@ -143,7 +143,7 @@ EM_BOOL judd_mouse_up_handler(int eventType, const EmscriptenMouseEvent *e, void
     return 1;
 }
 #endif
-judd_display_t *judd_create_display(int x, int y, int w, int h, char *name){
+judd_display_t *judd_create_display(int w, int h, char *name){
     judd_display_t *display = malloc(sizeof(judd_display_t));
     display->full = 0;
     display->closed = 0;
@@ -406,6 +406,7 @@ void judd_update_display(judd_display_t *display){
             break;
             case MotionNotify:
                 display->mouse_x = event.xmotion.x;
+                display->mouse_y = event.xmotion.y;
             break;
             case ClientMessage:
                 wmDeleteMessage = XInternAtom(display->display, "WM_DELETE_WINDOW", False);
@@ -447,7 +448,7 @@ void judd_update_display(judd_display_t *display){
     emscripten_sleep(10);
     #endif
 }
-void judd_display_close(judd_display_t *display){
+void judd_close_display(judd_display_t *display){
     free(display->name);
     #ifdef __linux__
           XDestroyWindow(display->display, display->window);
