@@ -24,6 +24,6 @@ judd_gl_load | OpengGL functions loading on few lines | 0.5
 judd_img_load | Image files loading | 0.5
 judd_audio | To load and play audio | 0.0
 judd_time | To manage time | 0.0
-judd_ecs | Entity component system | 0.0
+judd_ecs | Entity component system | 0.75
 judd_physics | To handle physics | 0.0
 judd_net | Networking API | 0.0
