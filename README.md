@@ -17,7 +17,7 @@ Another reasons are for learning, recreation and personal use.
 The following are planned to the final version:
 
 Module Name | Explanation | Version
--------|--------
+-------|--------|------
 judd_core | Opengl context creation and window mangement | 1.0
 judd_draw | Drawing operations on a opengl context | 1.0
 judd_gl_load | OpengGL functions loading on few lines | 0.5
