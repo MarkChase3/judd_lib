@@ -16,14 +16,19 @@ Another reasons are for learning, recreation and personal use.
 
 The following are planned to the final version:
 
-Module Name | Explanation | Version
--------|--------|------
-judd_core | Opengl context creation and window mangement | 1.0
-judd_draw | Drawing operations on a opengl context | 1.0
-judd_gl_load | OpengGL functions loading on few lines | 0.5
-judd_img_load | Image files loading | 0.5
-judd_audio | To load and play audio | 0.0
-judd_time | To manage time | 0.0
-judd_ecs | Entity component system | 0.75
-judd_physics | To handle physics | 0.0
-judd_net | Networking API | 0.0
+Module Name | Explanation | Version | Docs level
+-------|--------|------|-----
+judd_core | Opengl context creation and window mangement | 1.0 | Abundant
+judd_draw | Drawing operations on a opengl context | 1.0 | Few
+judd_gl_load | OpengGL functions loading on few lines | 0.5 | Few
+judd_img_load | Image files loading | 0.5 | Medium (single function lol)
+judd_audio | To load and play audio | 0.0 | none
+judd_time | To manage time | 0.0 | None
+judd_ecs | Entity component system | 0.75 | Few
+judd_json | Json Loading | 0.0 | None
+judd_physics | To handle physics | 0.0 | None
+judd_net | Networking API | 0.0 | none
+
+0.5 versions are usbale, but can't do every thing I expected. 1.0 versions are good and you can do a good app with them easily, but probably will have more updates. 0.75 is a mid-term.
+
+I have sttrugled a few on a png decoder, because I wanted to do it in a single function, don't ask me why. Now I will throw this away and I am going to work more hardly on judd_audio, judd_json and some documentation. Expect to have most work done until end of january.
