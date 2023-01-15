@@ -1,7 +1,7 @@
 # JUDD_LIB
 
 ## What this is exactly?
-This is a library of single header independet modules, that can create big applications when used together or with others APIs.
+This is a library of single header independent modules, that can create big applications when used together or with others APIs.
 
 ## Why that name?
 Donald Judd was a freaking cool guy, one of the first minimalistic thinkers. As this API is destined to be the simpler as possible, I decided to homage his work.
@@ -13,7 +13,7 @@ I already made some projects in C++, js, python and even lua, some were good, so
 Another reasons are for learning, recreation and personal use.
 
 ## How can I built it?
-You don't. Seriously. Everything here is in a single and independent file. No third parties. Nothing of Glad, GLFW, GLM, or similar. So just clone/download this repo and drag and drop the necessary headers onto your project
+You don't. Seriously. Everything here is in a single and independent file. No third parties. Nothing of Glad, GLFW, GLM, or similar. So just clone/download this repo and drag and drop the necessary headers onto your project.
 Some modules will need a linker flag, but that should already come on your system. Here's an table.
 
 Module name | Flags To Add On Linux | Backend APIs On Linux | Flags To Add on Windows | Backend APIs On Windows | Flags To Add On Emscripten
@@ -49,10 +49,31 @@ Before drawing images, we need to create a load OpenGL functions. Before loading
         .
         .
         .
+        judd_close_display(displ);
     }
     
 ### Entities
-The judd_ecs module 
+The judd_ecs module is preety simple but powerful. With it, you scale up the speed of development fast. Let's create an ecs first.
+
+    int nentities = 64;
+    int ncompoennts = 64;
+    int nsystems = 64;
+    judd_ecs_t *ecs = judd_create_ecs(nentities, ncomponents, nsystems);
+    judd_entity_t *player = judd_add_entity_to_ecs(ecs, 0, "player")
+
+The second parameter of ´´´´ judd_add_entity_to_ecs´´´´ specify if the entity created is sleeping. The third is the entity name.
+
+### Components
+Let's create an triangle, rectangle, and texture components:
+    
+    typedef struct Rectangle {
+        int x0, x1, y0, y1;
+    }
+    typedef struct Triangle {
+        int x0, x1, x2, y0, y1, y2;
+    }
+    judd_component_pool_t *rect
+
 ## What are the modules?
 
 The following are planned to the final version:
@@ -66,7 +87,7 @@ judd_img_load | Image files loading | 0.5 | Medium (also single function)
 judd_audio | To play audio files | WIP | WIP
 judd_audio_loader | To load audio | WIP | WIP
 judd_time | To manage time | WIP | WIP
-judd_ecs | Entity component system | WIP | Few
+judd_ecs | Entity component system | 0.75 | Few
 judd_json | Json Loading | WIP | WIP
 judd_physics | To handle physics | WIP | WIP
 judd_net | Networking API | WIP | WIP
