@@ -40,6 +40,19 @@ Just define ````*JUDD_MOUDLE*_IMPL```` and include the files
     #define JUDD_ECS_IMPL
     #include "judd_dcs.h"
 
+### Initializing
+Before drawing images, we need to create a load OpenGL functions. Before loading OpenGL functions, we need to create a valid OpenGL context. So in the end, we have this:
+
+    int main(){
+        judd_display_t *displ = judd_create_display(640, 360, "Cool Name");
+        judd_load_gl()
+        .
+        .
+        .
+    }
+    
+### Entities
+The judd_ecs module 
 ## What are the modules?
 
 The following are planned to the final version:
