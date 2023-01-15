@@ -19,7 +19,7 @@ Some modules will need a linker flag, but that should already come on your syste
 Module name | Flags To Add On Linux | Backend APIs On Linux | Flags To Add on Windows | Backend APIs On Windows | Flags To Add On Emscripten
 --|--|--|--|--|--
 judd_core |  -lX11 -lGL -lGLX | X11, OpenGL and GLX | -lgid32 -lopengl32 | Win32, OpengGL and WGL | -GL -sASYNCIFY |
-judd_gl_load | -lGL -lGLX | OpenGL and GLX | -lgdi32 -lopengl32 | WGL and OpenGL | Not tested
+judd_gl_loader | -lGL -lGLX | OpenGL and GLX | -lgdi32 -lopengl32 | WGL and OpenGL | Not tested
 judd_draw | -lGL | OpenGL | -lgdi32 -lopengl32 | OpenGL | Not tested
 
 ## Some examples
@@ -30,10 +30,16 @@ For compactness, here's a little walktrough over all the modules by once.
 Just define ````*JUDD_MOUDLE*_IMPL```` and include the files
 
 ´´´´
-#define JUDD_CORE_IMPL
-#include "judd_core.h"
-#define JUDD_DRAW_IMPL
-#include "judd_draw.h"
+    #define JUDD_CORE_IMPL
+    #include "judd_core.h"
+    #define JUDD_GL_LOADER_IMPL
+    #include "judd_gl_loader.h"
+    #define JUDD_DRAW_IMPL
+    #include "judd_draw.h"
+    #define JUDD_IMG_LOADER_IMPL
+    #include "judd_img_loader.h"
+    #define JUDD_ECS_IMPL
+    #include "judd_dcs.h"
 ´´´´
 ## What are the modules?
 
