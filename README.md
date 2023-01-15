@@ -29,7 +29,6 @@ For compactness, here's a little walktrough over all the modules by once.
 
 Just define ````*JUDD_MOUDLE*_IMPL```` and include the files
 
-´´´´
     #define JUDD_CORE_IMPL
     #include "judd_core.h"
     #define JUDD_GL_LOADER_IMPL
@@ -40,7 +39,7 @@ Just define ````*JUDD_MOUDLE*_IMPL```` and include the files
     #include "judd_img_loader.h"
     #define JUDD_ECS_IMPL
     #include "judd_dcs.h"
-´´´´
+
 ## What are the modules?
 
 The following are planned to the final version:
