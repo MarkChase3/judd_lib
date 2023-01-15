@@ -4,7 +4,7 @@
 This is a library of single header independent modules, that can create big applications when used together or with others APIs.
 
 ## Why that name?
-Donald Judd was a freaking cool guy, one of the first minimalistic thinkers. As this API is destined to be the simpler as possible, I decided to homage his work.
+Donald Judd was a freaking cool guy, one of the first minimalistic thinkers. As this API is destined to be the simpler as possible, I decided to pay a homage to his work.
 
 ## Why C?
 Because C is so freaking cool, man.
@@ -106,8 +106,11 @@ Here is where the judd_ecs logic comes. We can create functions that are called 
          judd_draw_rect(JUDD_DTYPE_TEX, rec.x0, rect.y0, 0, 0, rect.x1, rect.y0, texture->w, 0, rect.x1, rect.y1, texture->w, texture->h, rect.x0, rect.y1, 0, texture->h, tex);
     }
 
-Now we add the system to th ecs:
+Now we add the system to the ecs:
     
+    judd_system_t *rect_tex_system = judd_add_system_to_ecs(ecs, update_map, (judd_entity_t){.components = (1 << (rect - ecs->pool)) & (1 << (triangle - ecs->pools))});
+
+
 ### Mainloop
 Here we update all the modules that need to be updated:
 
