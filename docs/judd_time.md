@@ -61,4 +61,23 @@ Just the basic here, let's animate somethings.
         struct{int x,y;} speed = judd_get_component_from_entity(ecs, name, "speed");
         rect->x0 += speed->x;
         rect->y0 += speed->y;
-        rectx.x0 +=
+        rectx.x1 += speed->x;
+        rectx.y1 += speed->y;
+    }
+Full code:
+
+    void animate(judd_ecs_t *ecs, judd_entity_t *ent){
+        static int prev = judd_get_time();
+        int dt = judd_get_time() - prev;
+        prev = judd_get_time();
+        char *name = judd_get_entity_name(ent);
+        struct{int x0, x1, y0, y1;} rect = judd_get_component_from_entity(ecs, name, "rectangle");
+        struct{int x,y;} speed = judd_get_component_from_entity(ecs, name, "speed");
+        rect->x0 += speed->x;
+        rect->y0 += speed->y;
+        rectx.x1 += speed->x;
+        rectx.y1 += speed->y;
+    }
+    int main(){
+        
+    }
