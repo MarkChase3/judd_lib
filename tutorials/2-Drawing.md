@@ -8,4 +8,4 @@ We will use the judd_core OpenGL context to do this, but you can use as easily o
 For loading the functions, you can use a tool like glad, but we are nerds and I want to implement this with my own hands.
 For start, we need to declare the functions in a global scope:
 
-    
+    /* WIP */
