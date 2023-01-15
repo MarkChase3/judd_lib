@@ -70,3 +70,30 @@ Full code:
         }
         judd_display_close(display);
     }
+
+## Manual
+
+### List Of Functions And Types
+
+[judd_display_t](###judd_display_t)
+
+
+### judd_display_t
+A type that contains platform dependent variables for creating windows in each platform, as they aren''t cross-platform, w will just cover what you must use to  keep your code portable:
+
+Variable name | Explanation
+--|--
+closed | Indicates if the window was closed and is updated by the [judd_update_display](###judd_update_display) function
+full | Indicates if the window is on fullscreen and is modified by the [judd_set_display_fullscreen](###judd_set_display_fullscreen) function
+
+### judd_update_display
+
+Paraneters | Explanation
+--|--
+judd_display_t \*display | A pointer to a display openned by [judd_create_display](###judd_create_display)
+
+Swap the OpenGL buffers, updating the view of the user and the properties of the display specified on (judd_display_t)[###judd_display_t]
+
+### judd_set_display_fullscreen
+
+Receives a 
