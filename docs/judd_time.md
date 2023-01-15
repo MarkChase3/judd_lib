@@ -29,3 +29,24 @@ You can use this for making animations easily!. For help us in this, I will use 
     judd_display_t *displ = judd_create_windoww(640, 360, "Time test");
    
 If you don't know this, look at  [judd_core](https://github.com/MarkChase3/judd_lib/blob/main/docs/judd_core.md)
+
+    judd_load_gl();
+    
+This simply is defined on judd_gl_loader and, guess, loads opengl functions.
+
+     judd_ecs_t *ecs = judd_create_ecs(64, 64, 64);
+     judd_entity_t *guy = judd_add_entity_to_ecs(ecs, 0, "guy");
+     judd_component_pool_t *square = judd_add_component_pool_to_ecs(ecs, sizeof(strut {int x0, x1, y0, y1;}), "square");
+     judd_system_t *anim_system = judd_add_system_to_ecs(ecs, update_anim, (judd_entity_t){.components = 1});
+     judd_add_component_to_entity(ecs, "gyuy", "square");
+     *judd_get_component_from_entity(ecs, "guy", "square") = (struct{int x0, x1, y0, y1;}){.x0 = 100, .x1 = 150, .y0 = 100, y1 = 150};
+### Mainloop
+
+    while(){
+        .
+        .
+        .
+        judd_update_display(displ);
+    }
+
+Just the basic here, let's animate somethings.
