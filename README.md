@@ -41,7 +41,7 @@ Just define ````*JUDD_MOUDLE*_IMPL```` and include the files
     #include "judd_dcs.h"
 
 ### Initializing
-Before drawing images, we need to create a load OpenGL functions. Before loading OpenGL functions, we need to create a valid OpenGL context. So in the end, we have this:
+Before drawing images, we need to load OpenGL functions. Before loading OpenGL functions, we need to create a valid OpenGL context. So in the end, we have this:
 
     int main(){
         judd_display_t *displ = judd_create_display(640, 360, "Cool Name");
@@ -52,6 +52,8 @@ Before drawing images, we need to create a load OpenGL functions. Before loading
         judd_close_display(displ);
     }
     
+judd_create_display creates the OpenGL context and judd_load_gl load the OpenGL functions.
+
 ### Entities
 The judd_ecs module is preety simple but powerful. With it, you scale up the speed of development fast. Let's create an ecs first.
 
@@ -62,7 +64,7 @@ The judd_ecs module is preety simple but powerful. With it, you scale up the spe
     judd_entity_t *player = judd_add_entity_to_ecs(ecs, 0, "player");
     judd_entity_t *enemie = judd_add_entity_to_ecs(ecs, 0, "enemie");
 
-The second parameter of ´´´´ judd_add_entity_to_ecs´´´´ specify if the entity created is sleeping. The third is the entity name.
+The second parameter of ´´´´ judd_add_entity_to_ecs´´´´ specify if the entity created is sleeping. The third is the entity id.
 
 ### Components
 Let's create an triangle, rectangle, and texture components:
@@ -93,6 +95,29 @@ You must pass the an entity id to ´´´´judd_add_component_to_entity´´´´ a
     *judd_get_component_from_entity(ecs, "player", "texture") = judd_create_texture(judd_load_bmp(judd), 100, 69);
     
 As we are on C, we don't get references from C++, so ´´´´judd_get_component´´´´ returns a pointer that must be unreferenced to get the actual data. It's parameters are th same from judd_get_component_from_entity
+
+### Systems
+Here is where the judd_ecs logic comes. We can create functions that are called one time for each entity that has certain components, those functions are called systems. Look:
+
+     void update_texture_rect(judd_ecs_t *ecs, judd_entity_t *ent){
+         char *name = judd_get_entity_name(ecs, ent);
+         judd_texture_t *texture = judd_get_component_from_entity(ecs, name, "texture");
+         Rectangle rect = judd_get_component_from_entity(ecs, name, "rect");
+         judd_draw_rect(JUDD_DTYPE_TEX, rec.x0, rect.y0, 0, 0, rect.x1, rect.y0, texture->w, 0, rect.x1, rect.y1, texture->w, texture->h, rect.x0, rect.y1, 0, texture->h, tex);
+    }
+
+Now we add the system to th ecs:
+    
+### Mainloop
+Here we update all the modules that need to be updated:
+
+    while(!displ->closed){
+        .
+        .
+        .
+        judd_update_ecs(ecs);
+        judd_update_display();
+    }
 ## What are the modules?
 
 The following are planned to the final version:
