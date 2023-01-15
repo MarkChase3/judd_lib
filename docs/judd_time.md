@@ -46,7 +46,7 @@ This simply is defined on judd_gl_loader and, guess, loads opengl functions.
     while(){
         .
         .
-        .
+        judd_update_ecs(ecs);
         judd_update_display(displ);
     }
 
@@ -66,6 +66,16 @@ Just the basic here, let's animate somethings.
     }
 Full code:
 
+    #define JUDD_TIME_IMPL
+    #include "judd_time.h"
+    #define JUDD_ECS_IMPL
+    #include "judd_ecs.h"
+    #define JUDD_CORE_IMPL
+    #include "judd_core.h"
+    #include JUDD_GL_LOADER_IMPL
+    #define "judd_draw.h"
+    #include JUDD_DRAW_IMPL
+    #define "judd_draw.h"
     void animate(judd_ecs_t *ecs, judd_entity_t *ent){
         static int prev = judd_get_time();
         int dt = judd_get_time() - prev;
@@ -79,5 +89,17 @@ Full code:
         rectx.y1 += speed->y;
     }
     int main(){
-        
+        judd_display_t *displ = judd_create_windoww(640, 360, "Time test");        
+        judd_load_gl();
+        judd_ecs_t *ecs = judd_create_ecs(64, 64, 64);
+        judd_entity_t *guy = judd_add_entity_to_ecs(ecs, 0, "guy");
+        judd_component_pool_t *square = judd_add_component_pool_to_ecs(ecs, sizeof(strut {int x0, x1, y0, y1;}), "square");
+        judd_component_pool_t *speed = judd_add_component_pool_to_ecs(ecs, sizeof(strut {int x, y;}), "speed");
+        judd_system_t *anim_system = judd_add_system_to_ecs(ecs, update_anim, (judd_entity_t){.components = 1 | 2});
+        judd_add_component_to_entity(ecs, "gyuy", "square");
+        *judd_get_component_from_entity(ecs, "guy", "square") = (struct{int x0, x1, y0, y1;}){.x0 = 100, .x1 = 150, .y0 = 100, y1 = 150};        
+        while(){
+            judd_update_ecs(ecs);
+            judd_update_display(displ);
+        }
     }
