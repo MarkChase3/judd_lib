@@ -28,4 +28,4 @@ You can use this for making animations easily!. For help us in this, I will use 
 
     judd_display_t *displ = judd_create_windoww(640, 360, "Time test");
    
-If you don't know this, look at  []
+If you don't know this, look at  [judd_core](https://github.com/MarkChase3/judd_lib/blob/main/docs/judd_core.md)
