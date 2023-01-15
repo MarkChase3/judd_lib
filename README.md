@@ -12,6 +12,29 @@ But really, C is, in my opinion, the cooler language we have.
 I already made some projects in C++, js, python and even lua, some were good, some were not, but I always loved and will love C. I am very inspired on sokol, raylib and pico_headers to do this.
 Another reasons are for learning, recreation and personal use.
 
+## How can I built it?
+You don't. Seriously. Everything here is in a single and independent file. No third parties. Nothing of Glad, GLFW, GLM, or similar. So just clone/download this repo and drag and drop the necessary headers onto your project
+Some modules will need a linker flag, but that should already come on your system. Here's an table.
+
+Module name | Flags To Add On Linux | Backend APIs On Linux | Flags To Add on Windows | Backend APIs On Windows | Flags To Add On Emscripten
+--|--|--|--|--|--
+judd_core |  -lX11 -lGL -lGLX | X11, OpenGL and GLX | -lgid32 -lopengl32 | Win32, OpengGL and WGL | -GL -sASYNCIFY |
+judd_gl_load | -lGL -lGLX | OpenGL and GLX | -lgdi32 -lopengl32 | WGL and OpenGL | Not tested
+judd_draw | -lGL | OpenGL | -lgdi32 -lopengl32 | OpenGL | Not tested
+
+## Some examples
+For compactness, here's a little walktrough over all the modules by once.
+
+### Including
+
+Just define ````*JUDD_MOUDLE*_IMPL```` and include the files
+
+´´´´
+#define JUDD_CORE_IMPL
+#include "judd_core.h"
+#define JUDD_DRAW_IMPL
+#include "judd_draw.h"
+´´´´
 ## What are the modules?
 
 The following are planned to the final version:
