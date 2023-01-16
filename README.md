@@ -139,7 +139,12 @@ judd_time | To manage time | 1.0| Medium
 judd_ecs | Entity component system | 0.75 | Few
 judd_json | Json Loading | WIP | WIP
 judd_physics | To handle physics | WIP | WIP
+judd_math | Util math | WIP | WIP
 judd_net | Networking API | WIP | WIP
+judd_string | String Handling API | WIP | WIP
+judd_containers | Some Containers implementations | WIP | WIP
+judd_procedural | Perlin noise and others procedural like algorithms| WIP | WIP
+judd_pathfinding | Astar and other pathfinding algorithms| WIP | WIP
 
 0.5 versions are usbale, but can't do every thing I expected. 1.0 versions are good and you can do a good app with them easily, but probably will have more updates. 0.75 is a mid-term.
 
