@@ -121,6 +121,8 @@ Here we update all the modules that need to be updated:
         judd_update_ecs(ecs);
         judd_update_display();
     }
+
+/* TODO: MOVEMENT_PLAYER AND MOVEMENT_ENEMIE SYSTEMS AND COMPONENTS */
 ## What are the modules?
 
 The following are planned to the final version:
