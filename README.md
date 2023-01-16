@@ -133,8 +133,8 @@ judd_core | Opengl context creation and window mangement | 1.0 | High
 judd_draw | Drawing operations on a opengl context | 1.0 | Few
 judd_gl_load | OpengGL functions loading on few lines | 0.5 | Medium (single funtion)
 judd_img_load | Image files loading | 0.5 | Medium (also single function)
-judd_audio | To play audio files | WIP | WIP
-judd_audio_loader | To load audio | 0.5 | Medium
+judd_audio | To play audio files | 0.5 | Medium
+judd_audio_loader | To load audio | WIP | WIP
 judd_time | To manage time | 1.0| Medium
 judd_ecs | Entity component system | 0.75 | Few
 judd_json | Json Loading | WIP | WIP
