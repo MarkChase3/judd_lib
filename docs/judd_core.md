@@ -76,6 +76,8 @@ Full code:
 ### List Of Functions And Types
 
 [judd_display_t](###judd_display_t)
+[judd_update_display](###judd_update_display)
+[judd_set_display_fullscreen](###judd_set_display_fullscreen)
 
 
 ### judd_display_t
